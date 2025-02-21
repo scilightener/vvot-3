@@ -1,0 +1,1 @@
+server ansible_host={IP} ansible_user=ubuntu ansible_connection=ssh

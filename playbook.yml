@@ -1,0 +1,54 @@
+- name: Nextcloud
+  hosts: server
+  tasks:
+    - name: set timezone
+      community.general.timezone:
+        name: Europe/Moscow
+
+    - name: apt update && apt upgrade
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: yes
+
+    - name: apt install
+      ansible.builtin.apt:
+        pkg:
+          - acl
+          - unzip
+          - postgresql-all
+          - python3-psycopg2
+          - apache2
+          - libapache2-mod-php
+          - php-curl
+          - php-gd
+          - php-json
+          - php-mbstring
+          - php-xml
+          - php-zip
+          - php-pgsql
+        state: present
+
+    - name: install nextcloud
+      ansible.builtin.unarchive:
+        dest: "/var/www/html"
+        src: "https://download.nextcloud.com/server/releases/latest.zip"
+        remote_src: true
+        owner: "www-data"
+        group: "www-data"
+        creates: "/var/www/html/nextcloud"
+
+    - name: pgs user
+      become: true
+      become_user: postgres
+      become_method: ansible.builtin.sudo
+      community.postgresql.postgresql_user:
+        name: "{{POSTGRES_USER}}"
+        password: "{{POSTGRES_USER_PASSWORD}}"
+
+    - name: pgs db
+      become: true
+      become_user: postgres
+      become_method: ansible.builtin.sudo
+      community.postgresql.postgresql_db:
+        name: "{{POSTGRES_DB}}"
+        owner: "{{POSTGRES_USER}}"
